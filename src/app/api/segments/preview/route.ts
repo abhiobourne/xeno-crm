@@ -17,5 +17,5 @@ export async function POST(req: Request) {
     createdAt: new Date(),
   })
 
-  return Response.json({ success: true, campaign })
+  return Response.json({ size: campaign.audience })
 }

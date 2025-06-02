@@ -6,7 +6,6 @@ import {
   Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, Paper
 } from '@mui/material'
 import { useRouter } from 'next/navigation'
-useRouter
 
 export default function CampaignsPage() {
   const router = useRouter()
@@ -20,10 +19,13 @@ export default function CampaignsPage() {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const res = await fetch('http://localhost:3000/api/campaigns')
+        const res = await fetch('/api/campaigns')
+        if (!res.ok) throw new Error('Failed to fetch campaigns')
         const data = await res.json()
         setCampaigns(data)
-      } catch {}
+      } catch (err) {
+        console.error('Error fetching campaigns:', err)
+      }
     }
 
     if (status === 'authenticated') fetchCampaigns()

@@ -1,12 +1,15 @@
+// File: /app/api/logs/route.ts
 import { connectToDB } from '@/lib/db'
 import CommunicationLog from '@/lib/models/CommunicationLog'
+import Campaign from '@/lib/models/Campaign'
+import Customer from '@/lib/models/Customer'
 
 export async function GET() {
   await connectToDB()
 
   const logs = await CommunicationLog.find({})
-    .populate('campaignId', 'name')
-    .populate('customerId', 'name')
+    .populate('campaignId', 'name')      // populates campaignId -> campaign name
+    .populate('customerId', 'name')      // populates customerId -> customer name
     .lean()
 
   const formattedLogs = logs.map(log => ({
@@ -15,11 +18,8 @@ export async function GET() {
     status: log.status,
     timestamp: log.timestamp,
     campaignName: log.campaignId?.name || 'N/A',
-    customerName: log.customerId?.name || 'N/A',
+    customerName: log.customerId?.name || 'N/A'
   }))
 
-  return new Response(
-    JSON.stringify(formattedLogs),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  )
+  return Response.json(formattedLogs)
 }
