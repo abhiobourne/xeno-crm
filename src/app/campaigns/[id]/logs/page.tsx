@@ -21,7 +21,7 @@ export default function CampaignLogsPage() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/communication-logs?campaignId=${id}`)
+        const res = await fetch(`https://xeno-crm-peach.vercel.app/api/communication-logs?campaignId=${id}`)
         const data = await res.json()
         setLogs(data)
       } catch (err) {

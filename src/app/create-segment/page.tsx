@@ -67,7 +67,7 @@ export default function CreateSegmentPage() {
   const getAudienceSize = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:3000/api/segments/preview', {
+      const res = await fetch('https://xeno-crm-peach.vercel.app/api/segments/preview', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rules, logic }),
@@ -128,7 +128,7 @@ export default function CreateSegmentPage() {
     try {
       setLoading(true)
       // First create the segment
-      const segmentRes = await fetch('http://localhost:3000/api/segments', {
+      const segmentRes = await fetch('https://xeno-crm-peach.vercel.app/api/segments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rules, logic, audienceSize }),
@@ -137,7 +137,7 @@ export default function CreateSegmentPage() {
       const segment = await segmentRes.json()
 
       // Then create the campaign
-      const campaignRes = await fetch('http://localhost:3000/api/campaigns', {
+      const campaignRes = await fetch('https://xeno-crm-peach.vercel.app/api/campaigns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

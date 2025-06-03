@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     // Send delivery receipt to our backend
-    await fetch('http://localhost:3000/api/communication-logs', {
+    await fetch('https://xeno-crm-peach.vercel.app/api/communication-logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

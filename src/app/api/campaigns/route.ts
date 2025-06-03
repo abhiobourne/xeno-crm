@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       
       try {
         // Send to vendor API
-        const vendorResponse = await fetch('http://localhost:3000/api/vendor', {
+        const vendorResponse = await fetch('https://xeno-crm-peach.vercel.app/api/vendor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
