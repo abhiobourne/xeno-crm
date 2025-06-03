@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Box, Typography, Button, Select, MenuItem, TextField, IconButton, FormControl, InputLabel,
-  Alert, Snackbar, Paper
+  Alert, Snackbar, Paper, Chip, Stack
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
+import { generateMessageSuggestions, autoCategorizeCampaign } from '@/lib/aiHandler'
 
 interface Rule {
   field: string
@@ -23,6 +25,8 @@ export default function CreateSegmentPage() {
   const [messageTemplate, setMessageTemplate] = useState('Hi {name}, here\'s 10% off on your next order!')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [messageSuggestions, setMessageSuggestions] = useState<string[]>([])
+  const [campaignTags, setCampaignTags] = useState<string[]>([])
 
   const updateRule = (index: number, key: keyof Rule, value: string) => {
     const updated = [...rules]
@@ -78,6 +82,43 @@ export default function CreateSegmentPage() {
     }
   }
 
+  const getAudienceDescription = () => {
+    const descriptions = rules.map(rule => {
+      return `${rule.field} ${rule.operator} ${rule.value}`
+    })
+    return descriptions.join(` ${logic} `)
+  }
+
+  const generateSuggestions = async () => {
+    try {
+      setLoading(true)
+      const objective = `Create a campaign message for customers where ${getAudienceDescription()}`
+      const suggestions = await generateMessageSuggestions(objective)
+      setMessageSuggestions(suggestions)
+    } catch (error) {
+      setError('Failed to generate message suggestions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const generateTags = async () => {
+    try {
+      setLoading(true)
+      const audienceDescription = getAudienceDescription()
+      const tags = await autoCategorizeCampaign(messageTemplate, audienceDescription)
+      setCampaignTags(tags)
+    } catch (error) {
+      setError('Failed to generate campaign tags')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const applySuggestion = (suggestion: string) => {
+    setMessageTemplate(suggestion)
+  }
+
   const saveSegment = async () => {
     if (!validateForm()) return
 
@@ -100,7 +141,8 @@ export default function CreateSegmentPage() {
           name: campaignName,
           segmentId: segment.id,
           messageTemplate,
-          audienceSize
+          audienceSize,
+          tags: campaignTags
         }),
       })
       if (!campaignRes.ok) throw new Error('Failed to create campaign')
@@ -128,16 +170,47 @@ export default function CreateSegmentPage() {
       </Box>
 
       <Box mb={4}>
-        <TextField
-          label="Message Template"
-          value={messageTemplate}
-          onChange={e => setMessageTemplate(e.target.value)}
-          fullWidth
-          multiline
-          rows={3}
-          required
-          helperText="Use {name} to personalize the message"
-        />
+        <Box display="flex" gap={2} alignItems="start" mb={2}>
+          <TextField
+            label="Message Template"
+            value={messageTemplate}
+            onChange={e => setMessageTemplate(e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            required
+            helperText="Use {name} to personalize the message"
+          />
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={generateSuggestions}
+            disabled={loading}
+            startIcon={<AutoFixHighIcon />}
+            sx={{ minWidth: '180px' }}
+          >
+            Get AI Suggestions
+          </Button>
+        </Box>
+
+        {messageSuggestions.length > 0 && (
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle2" mb={1}>AI Suggestions:</Typography>
+            <Stack spacing={1}>
+              {messageSuggestions.map((suggestion, index) => (
+                <Button
+                  key={index}
+                  variant="outlined"
+                  size="small"
+                  onClick={() => applySuggestion(suggestion)}
+                  sx={{ justifyContent: 'flex-start', textAlign: 'left' }}
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </Stack>
+          </Paper>
+        )}
       </Box>
 
       <Typography variant="h6" mb={2}>Segment Rules</Typography>
@@ -204,6 +277,28 @@ export default function CreateSegmentPage() {
         </Button>
         {audienceSize !== null && (
           <Typography variant="h6">Audience size: {audienceSize}</Typography>
+        )}
+      </Box>
+
+      <Box mb={4}>
+        <Button
+          variant="outlined"
+          color="secondary"
+          onClick={generateTags}
+          disabled={loading}
+          startIcon={<AutoFixHighIcon />}
+        >
+          Generate Tags
+        </Button>
+        {campaignTags.length > 0 && (
+          <Box mt={2}>
+            <Typography variant="subtitle2" mb={1}>Campaign Tags:</Typography>
+            <Stack direction="row" spacing={1}>
+              {campaignTags.map((tag, index) => (
+                <Chip key={index} label={tag} color="primary" />
+              ))}
+            </Stack>
+          </Box>
         )}
       </Box>
 
