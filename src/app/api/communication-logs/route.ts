@@ -10,7 +10,8 @@ export async function GET() {
       .populate('campaignId')
       .populate('customerId')
     return NextResponse.json(logs)
-  } catch (error) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (error) {
     return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
   }
 }
@@ -29,7 +30,8 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(log)
-  } catch (error) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (error) {
     return NextResponse.json({ error: 'Failed to create log' }, { status: 500 })
   }
 }

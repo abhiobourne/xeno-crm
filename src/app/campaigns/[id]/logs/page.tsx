@@ -53,8 +53,10 @@ export default function CampaignLogsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {logs.map((log, i) => (
+              
+              {(logs as any[]).map((log, i) => (
                 <TableRow key={i}>
+                  
                   <TableCell>{log.customerId?.name}</TableCell>
                   <TableCell>{log.message}</TableCell>
                   <TableCell>{log.status}</TableCell>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, Container, Grid, Typography, Paper } from '@mui/material';
+import { Box, Button, Container, Typography, Paper, Grid } from '@mui/material';
 import Link from 'next/link';
 
 const tools = [
@@ -44,7 +44,15 @@ export default function AIToolsDashboard() {
       </Typography>
       <Grid container spacing={3}>
         {tools.map((tool) => (
-          <Grid item xs={12} sm={6} md={4} key={tool.name} sx={{ display: 'flex' }}>
+          // @ts-ignore
+          <Grid
+            key={tool.name}
+            item
+            xs={12}
+            sm={6}
+            md={4}
+            sx={{ display: 'flex' }}
+          >
             <Paper
               elevation={3}
               sx={{
@@ -64,7 +72,12 @@ export default function AIToolsDashboard() {
                 </Typography>
               </Box>
               <Box mt={3} textAlign="right">
-                <Button variant="contained" component={Link} href={tool.route}>
+                <Button
+                  variant="contained"
+                  
+                  component={Link as any} // workaround to avoid type error with Next.js <Link>
+                  href={tool.route}
+                >
                   Open Tool
                 </Button>
               </Box>

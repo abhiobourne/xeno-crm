@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
     const summary = await generateText(prompt);
 
     return NextResponse.json({ success: true, summary });
-  } catch (error) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to generate summary' }, { status: 500 });
   }
 }

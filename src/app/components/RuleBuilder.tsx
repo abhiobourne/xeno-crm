@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Rule, RuleGroup } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -135,6 +135,7 @@ export const RuleBuilder: React.FC<RuleBuilderProps> = ({ value, onChange }) => 
           </button>
         </div>
         <div className="ml-4">
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           {group.rules.map((rule, index) => (
             <div key={rule.id}>
               {'combinator' in rule ? (

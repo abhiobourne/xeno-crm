@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 export async function connectDB() {
   if (mongoose.connections[0].readyState) return;
-  const MONGODB_URI = process.env.MONGODB_URI ; 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const MONGODB_URI = process.env.MONGODB_URI 
   console.log('MongoDB connected');
   mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err);

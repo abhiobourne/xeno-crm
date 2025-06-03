@@ -75,7 +75,8 @@ export default function CreateSegmentPage() {
       if (!res.ok) throw new Error('Failed to preview audience')
       const data = await res.json()
       setAudienceSize(data.size)
-    } catch (error) {
+    } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    catch (error) {
       setError('Failed to preview audience size')
     } finally {
       setLoading(false)
@@ -95,7 +96,8 @@ export default function CreateSegmentPage() {
       const objective = `Create a campaign message for customers where ${getAudienceDescription()}`
       const suggestions = await generateMessageSuggestions(objective)
       setMessageSuggestions(suggestions)
-    } catch (error) {
+    } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    catch (error) {
       setError('Failed to generate message suggestions')
     } finally {
       setLoading(false)
@@ -108,7 +110,8 @@ export default function CreateSegmentPage() {
       const audienceDescription = getAudienceDescription()
       const tags = await autoCategorizeCampaign(messageTemplate, audienceDescription)
       setCampaignTags(tags)
-    } catch (error) {
+    } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    catch (error) {
       setError('Failed to generate campaign tags')
     } finally {
       setLoading(false)

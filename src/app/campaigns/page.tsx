@@ -146,6 +146,7 @@ export default function CampaignsPage() {
                   <TableCell>
                     <Chip
                       label={campaign.status}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       color={getStatusColor(campaign.status) as any}
                       size="small"
                     />

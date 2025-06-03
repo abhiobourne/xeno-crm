@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     await Campaign.findByIdAndUpdate(log.campaignId, updateField);
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (err) {
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

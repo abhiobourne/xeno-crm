@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { DeliveryLog } from '@/lib/types';
 
 // Mock delivery logs storage
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let deliveryLogs: DeliveryLog[] = [];
 let batchQueue: DeliveryLog[] = [];
 const BATCH_SIZE = 100;

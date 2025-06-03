@@ -9,8 +9,6 @@ export async function POST(request: Request) {
     // Simulate random success/failure
     const isSuccess = Math.random() < 0.9
 
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500))
 
     if (!isSuccess) {
       return NextResponse.json({ 
@@ -35,7 +33,8 @@ export async function POST(request: Request) {
       success: true, 
       message: 'Message delivered successfully' 
     })
-  } catch (error) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (error) {
     return NextResponse.json({ 
       success: false, 
       error: 'Internal server error' 

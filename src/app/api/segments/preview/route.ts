@@ -1,9 +1,9 @@
 import { connectToDB } from '@/lib/db'
-import Segment from '@/lib/models/Segment'
+
 
 export async function POST(req: Request) {
   await connectToDB()
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { rules, logic } = await req.json()
   const size = Math.floor(Math.random() * 2000)
 

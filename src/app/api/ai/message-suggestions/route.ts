@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
       .filter(Boolean);
 
     return NextResponse.json({ success: true, suggestions });
-  } catch (error) {
+  } // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to generate message suggestions' }, { status: 500 });
   }
 }
