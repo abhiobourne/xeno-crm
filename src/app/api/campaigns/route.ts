@@ -1,68 +1,131 @@
+import { NextResponse } from 'next/server'
 import { connectToDB } from '@/lib/db'
-import Campaign from '@/lib/models/Campaign'
-import CommunicationLog from '@/lib/models/CommunicationLog'
+import { Campaign, Customer, CommunicationLog } from '@/lib/models'
+import { Document, Types } from 'mongoose'
 
-export async function POST(req: Request) {
-  await connectToDB()
-  const { rules, logic, audienceSize } = await req.json()
-
-  const audience = audienceSize ?? Math.floor(Math.random() * 2000)
-  const sent = Math.floor(audience * 0.9)
-  const failed = audience - sent
-  const campaignName = 'Campaign #' + Date.now()
-
-  const campaign = await Campaign.create({
-    name: campaignName,
-    rules,
-    logic,
-    audience,
-    sent,
-    failed,
-  })
-
-  const logs = []
-
-  for (let i = 0; i < audience; i++) {
-    const isSent = Math.random() < 0.9
-    const customerName = `User${i + 1}`
-    const status = isSent ? 'SENT' : 'FAILED'
-    const message = `Hi ${customerName}, here’s 10% off on your next order!`
-
-    logs.push({
-      campaignId: campaign._id,
-      campaignName,
-      customerName,
-      message,
-      status,
-      timestamp: new Date(),
-    })
-
-    // Fire-and-forget delivery receipt POST
-    fetch('http://localhost:3000/api/delivery-receipt', {
-      method: 'POST',
-      body: JSON.stringify({
-        campaignId: campaign._id,
-        customerName,
-        status,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    }).catch(console.error)
-  }
-
-  await CommunicationLog.insertMany(logs)
-
-  return new Response(
-    JSON.stringify({ success: true, campaignId: campaign._id }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  )
+interface CampaignDocument extends Document {
+  _id: Types.ObjectId
+  name: string
+  segmentId: {
+    _id: Types.ObjectId
+    name: string
+  } | null
+  messageTemplate: string
+  audienceSize: number
+  status: string
+  createdAt: Date
 }
 
-// GET campaigns sorted by newest
+interface CustomerDocument extends Document {
+  _id: Types.ObjectId
+  name: string
+}
+
 export async function GET() {
-  await connectToDB()
-  const campaigns = await Campaign.find().sort({ createdAt: -1 })
-  return new Response(
-    JSON.stringify(campaigns),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  )
+  try {
+    await connectToDB()
+    const campaigns = await Campaign.find()
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'segmentId',
+        select: '_id name',
+        model: 'Segment'
+      })
+      .lean()
+
+    // Transform the data to match the frontend interface
+    const transformedCampaigns = campaigns.map((campaign: CampaignDocument) => ({
+      _id: campaign._id.toString(),
+      name: campaign.name,
+      segmentId: campaign.segmentId ? {
+        _id: campaign.segmentId._id.toString(),
+        name: campaign.segmentId.name
+      } : null,
+      messageTemplate: campaign.messageTemplate,
+      audienceSize: campaign.audienceSize,
+      status: campaign.status,
+      createdAt: campaign.createdAt
+    }))
+
+    return NextResponse.json(transformedCampaigns)
+  } catch (error) {
+    console.error('Failed to fetch campaigns:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch campaigns' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    await connectToDB()
+    const body = await request.json()
+    const { name, segmentId, messageTemplate, audienceSize } = body
+
+    // Create campaign
+    const campaign = await Campaign.create({
+      name,
+      segmentId,
+      messageTemplate,
+      audienceSize,
+      status: 'PENDING'
+    })
+
+    // Get customers in the segment
+    const customers = await Customer.find({ segmentId })
+
+    // Send messages to each customer
+    const messagePromises = customers.map(async (customer: CustomerDocument) => {
+      const personalizedMessage = messageTemplate.replace('{name}', customer.name)
+      
+      try {
+        // Send to vendor API
+        const vendorResponse = await fetch('http://localhost:3000/api/vendor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: customer._id,
+            message: personalizedMessage
+          })
+        })
+
+        // Log the communication attempt
+        await CommunicationLog.create({
+          campaignId: campaign._id,
+          customerId: customer._id,
+          message: personalizedMessage,
+          status: vendorResponse.ok ? 'SENT' : 'FAILED'
+        })
+      } catch (error) {
+        // Log failed delivery
+        await CommunicationLog.create({
+          campaignId: campaign._id,
+          customerId: customer._id,
+          message: personalizedMessage,
+          status: 'FAILED'
+        })
+      }
+    })
+
+    // Wait for all messages to be sent
+    await Promise.all(messagePromises)
+
+    // Update campaign status
+    const successCount = await CommunicationLog.countDocuments({
+      campaignId: campaign._id,
+      status: 'SENT'
+    })
+
+    const status = successCount === customers.length ? 'COMPLETED' : 'FAILED'
+    await Campaign.findByIdAndUpdate(campaign._id, { status })
+
+    return NextResponse.json(campaign)
+  } catch (error) {
+    console.error('Failed to create campaign:', error)
+    return NextResponse.json(
+      { error: 'Failed to create campaign' },
+      { status: 500 }
+    )
+  }
 }

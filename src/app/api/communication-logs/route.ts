@@ -1,25 +1,35 @@
+import { NextResponse } from 'next/server'
 import { connectToDB } from '@/lib/db'
 import CommunicationLog from '@/lib/models/CommunicationLog'
 
 export async function GET() {
-  await connectToDB()
+  try {
+    await connectToDB()
+    const logs = await CommunicationLog.find()
+      .sort({ createdAt: -1 })
+      .populate('campaignId')
+      .populate('customerId')
+    return NextResponse.json(logs)
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch logs' }, { status: 500 })
+  }
+}
 
-  const logs = await CommunicationLog.find({})
-    .populate('campaignId', 'name')
-    .populate('customerId', 'name')
-    .lean()
+export async function POST(request: Request) {
+  try {
+    await connectToDB()
+    const body = await request.json()
+    const { campaignId, customerId, message, status } = body
 
-  const formattedLogs = logs.map(log => ({
-    _id: log._id,
-    message: log.message,
-    status: log.status,
-    timestamp: log.timestamp,
-    campaignName: log.campaignId?.name || 'N/A',
-    customerName: log.customerId?.name || 'N/A',
-  }))
+    const log = await CommunicationLog.create({
+      campaignId,
+      customerId,
+      message,
+      status
+    })
 
-  return new Response(
-    JSON.stringify(formattedLogs),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
-  )
+    return NextResponse.json(log)
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to create log' }, { status: 500 })
+  }
 }

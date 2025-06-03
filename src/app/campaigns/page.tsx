@@ -1,88 +1,164 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
-import { Campaign } from '@/lib/types'
+import { useState, useEffect } from 'react'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Alert,
+  CircularProgress
+} from '@mui/material'
+import { useRouter } from 'next/navigation'
 
-async function getCampaigns(): Promise<Campaign[]> {
-  const response = await fetch('/api/campaigns', {
-    cache: 'no-store',
-  })
-  return response.json()
+interface Campaign {
+  _id: string
+  name: string
+  segmentId: {
+    _id: string
+    name: string
+  } | null
+  messageTemplate: string
+  audienceSize: number
+  status: string
+  createdAt: string
 }
 
-export default async function CampaignHistory() {
-  const campaigns = await getCampaigns()
+export default function CampaignsPage() {
+  const router = useRouter()
+  const [campaigns, setCampaigns] = useState<Campaign[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchCampaigns()
+  }, [])
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch('/api/campaigns')
+      if (!response.ok) {
+        throw new Error('Failed to fetch campaigns')
+      }
+      const data = await response.json()
+      if (Array.isArray(data)) {
+        setCampaigns(data)
+      } else {
+        setCampaigns([])
+        console.error('Invalid campaigns data format:', data)
+      }
+    } catch (err) {
+      setError('Failed to load campaigns. Please try again later.')
+      console.error('Error fetching campaigns:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'COMPLETED':
+        return 'success'
+      case 'FAILED':
+        return 'error'
+      case 'PENDING':
+        return 'warning'
+      default:
+        return 'default'
+    }
+  }
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Box p={3}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    )
+  }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Campaign History</h1>
-        <Link
-          href="/campaigns/create"
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Create Campaign
-        </Link>
-      </div>
+    <Box p={3}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">Campaign History</Typography>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => router.push('/logs')}
+          >
+            View Logs
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => router.push('/create-segment')}
+          >
+            Create New Campaign
+          </Button>
+        </Box>
+      </Box>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Campaign Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Audience Size
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sent
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Failed
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Created At
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {campaigns.map((campaign) => (
-              <tr key={campaign.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {campaign.name}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                    ${campaign.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                    campaign.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'}`}>
-                    {campaign.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {campaign.audienceSize}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {campaign.sent}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {campaign.failed}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(campaign.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      {campaigns.length === 0 ? (
+        <Card>
+          <CardContent>
+            <Typography variant="body1" align="center">
+              No campaigns found. Create your first campaign to get started.
+            </Typography>
+          </CardContent>
+        </Card>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Segment</TableCell>
+                <TableCell>Audience Size</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created At</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {campaigns.map((campaign) => (
+                <TableRow key={campaign._id}>
+                  <TableCell>{campaign.name}</TableCell>
+                  <TableCell>{campaign.segmentId?.name || 'N/A'}</TableCell>
+                  <TableCell>{campaign.audienceSize}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={campaign.status}
+                      color={getStatusColor(campaign.status) as any}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {new Date(campaign.createdAt).toLocaleString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   )
 }

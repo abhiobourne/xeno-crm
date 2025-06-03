@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 
-const CustomerSchema = new mongoose.Schema({
-  name: String,
-  email: String,
+const customerSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
   phone: String,
-  totalSpend: Number,
-  visitCount: Number,
-  lastActive: Date
-});
+  totalSpend: { type: Number, default: 0 },
+  visits: { type: Number, default: 0 },
+  lastVisit: { type: Date, default: Date.now },
+  segmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Segment' }
+}, { timestamps: true });
 
-export default mongoose.models.Customer || mongoose.model("Customer", CustomerSchema);
+export default mongoose.models.Customer || mongoose.model('Customer', customerSchema);
