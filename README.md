@@ -102,14 +102,15 @@ src/
 
 ## 🔗 Deployment
 
-- 🔐 **GitHub Repository**: [github.com/your-username/xeno-crm](https://github.com/your-username/xeno-crm)
-- 🌍 **Live Demo on Vercel**: [xeno-crm.vercel.app](https://xeno-crm.vercel.app)
+- 🔐 **GitHub Repository**: [github.com/your-username/xeno-crm](https://github.com/abhiobourne/xeno-crm)
+- 🌍 **Live Demo on Vercel**: [xeno-crm.vercel.app](https://xeno-crm-peach.vercel.app)
 
 ---
 
 ## 📸 Demo Video
 
-🎥 [Google Drive / Loom Link](#) — Explaining rule builder, AI usage, campaign logs, and delivery simulation.
+🎥 [Google Drive](#) — Explaining rule builder, AI usage, campaign logs, and delivery simulation.
+https://drive.google.com/drive/folders/1mENLV_iijIsKzrJMVglfKWOMV56VBKqa?usp=drive_link
 
 ---
 
@@ -119,3 +120,4 @@ Built with ❤️ for the **Xeno SDE Internship Assignment – 2025**.
 Looking forward to your feedback!
 
 — **Jatin Jadon**
+
